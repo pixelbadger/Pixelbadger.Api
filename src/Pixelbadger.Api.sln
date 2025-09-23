@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B2B195D0-F3AB-431F-8173-7C8A85E02A0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api.Domain", "src\Pixelbadger.Api.Domain\Pixelbadger.Api.Domain.csproj", "{AD7B3A8C-4C5F-4877-9043-5EF16D125D01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api.Application", "src\Pixelbadger.Api.Application\Pixelbadger.Api.Application.csproj", "{A032EB68-B5CA-4F63-BB8D-16D1B97EE866}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api.Infrastructure", "src\Pixelbadger.Api.Infrastructure\Pixelbadger.Api.Infrastructure.csproj", "{960FA1BE-8AEC-49C0-A83B-583206DDEC14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api", "src\Pixelbadger.Api\Pixelbadger.Api.csproj", "{BBF43992-3DB0-40DB-A99F-695B845D0CF5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD7B3A8C-4C5F-4877-9043-5EF16D125D01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD7B3A8C-4C5F-4877-9043-5EF16D125D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD7B3A8C-4C5F-4877-9043-5EF16D125D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD7B3A8C-4C5F-4877-9043-5EF16D125D01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A032EB68-B5CA-4F63-BB8D-16D1B97EE866}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A032EB68-B5CA-4F63-BB8D-16D1B97EE866}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A032EB68-B5CA-4F63-BB8D-16D1B97EE866}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A032EB68-B5CA-4F63-BB8D-16D1B97EE866}.Release|Any CPU.Build.0 = Release|Any CPU
+		{960FA1BE-8AEC-49C0-A83B-583206DDEC14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{960FA1BE-8AEC-49C0-A83B-583206DDEC14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{960FA1BE-8AEC-49C0-A83B-583206DDEC14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{960FA1BE-8AEC-49C0-A83B-583206DDEC14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBF43992-3DB0-40DB-A99F-695B845D0CF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBF43992-3DB0-40DB-A99F-695B845D0CF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBF43992-3DB0-40DB-A99F-695B845D0CF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBF43992-3DB0-40DB-A99F-695B845D0CF5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AD7B3A8C-4C5F-4877-9043-5EF16D125D01} = {B2B195D0-F3AB-431F-8173-7C8A85E02A0E}
+		{A032EB68-B5CA-4F63-BB8D-16D1B97EE866} = {B2B195D0-F3AB-431F-8173-7C8A85E02A0E}
+		{960FA1BE-8AEC-49C0-A83B-583206DDEC14} = {B2B195D0-F3AB-431F-8173-7C8A85E02A0E}
+		{BBF43992-3DB0-40DB-A99F-695B845D0CF5} = {B2B195D0-F3AB-431F-8173-7C8A85E02A0E}
+	EndGlobalSection
+EndGlobal
