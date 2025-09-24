@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DC5561DA-BCA2-449D-B529-EC1451DA1958}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api.Domain", "src\Pixelbadger.Api.Domain\Pixelbadger.Api.Domain.csproj", "{3F992721-9CCD-4EFF-9910-6248358AAC8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api.Application", "src\Pixelbadger.Api.Application\Pixelbadger.Api.Application.csproj", "{F759B23A-AA51-4B60-90D1-E50F604C3F96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api.Infrastructure", "src\Pixelbadger.Api.Infrastructure\Pixelbadger.Api.Infrastructure.csproj", "{AD60302E-2967-496D-842A-57CC78D9AF77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelbadger.Api", "src\Pixelbadger.Api\Pixelbadger.Api.csproj", "{48C901DE-88AB-456B-80F1-95EAA082C819}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3F992721-9CCD-4EFF-9910-6248358AAC8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F992721-9CCD-4EFF-9910-6248358AAC8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F992721-9CCD-4EFF-9910-6248358AAC8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F992721-9CCD-4EFF-9910-6248358AAC8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F759B23A-AA51-4B60-90D1-E50F604C3F96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F759B23A-AA51-4B60-90D1-E50F604C3F96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F759B23A-AA51-4B60-90D1-E50F604C3F96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F759B23A-AA51-4B60-90D1-E50F604C3F96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD60302E-2967-496D-842A-57CC78D9AF77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD60302E-2967-496D-842A-57CC78D9AF77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD60302E-2967-496D-842A-57CC78D9AF77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD60302E-2967-496D-842A-57CC78D9AF77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48C901DE-88AB-456B-80F1-95EAA082C819}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48C901DE-88AB-456B-80F1-95EAA082C819}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48C901DE-88AB-456B-80F1-95EAA082C819}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48C901DE-88AB-456B-80F1-95EAA082C819}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3F992721-9CCD-4EFF-9910-6248358AAC8E} = {DC5561DA-BCA2-449D-B529-EC1451DA1958}
+		{F759B23A-AA51-4B60-90D1-E50F604C3F96} = {DC5561DA-BCA2-449D-B529-EC1451DA1958}
+		{AD60302E-2967-496D-842A-57CC78D9AF77} = {DC5561DA-BCA2-449D-B529-EC1451DA1958}
+		{48C901DE-88AB-456B-80F1-95EAA082C819} = {DC5561DA-BCA2-449D-B529-EC1451DA1958}
+	EndGlobalSection
+EndGlobal
