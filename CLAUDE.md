@@ -15,3 +15,22 @@ The solution follows Clean Architecture principles with these layers:
 - **Language**: C# with .NET 8
 - **Patterns**: CQRS with MediatR, Clean Architecture, SOLID principles
 - **Framework**: ASP.NET Core Web API
+
+## Testing Structure
+
+The solution includes NUnit test projects for the core architectural layers:
+
+- **tests/Pixelbadger.Api.Domain.Tests**: Tests for domain services (domain entities do not require testing)
+- **tests/Pixelbadger.Api.Application.Tests**: Tests for application services and CQRS handlers
+- **tests/Pixelbadger.Api.Infrastructure.Tests**: Tests for infrastructure services and external integrations
+
+## Testing Requirements
+
+**All CQRS commands and services implemented must have corresponding unit tests.** This includes:
+
+- All MediatR command and query handlers in the Application layer
+- All application services and domain services
+- All infrastructure services and repository implementations
+- Integration tests for external service dependencies
+
+Domain entities (simple data models) do not require unit tests, but domain services with business logic must be tested using the Domain.Tests project.
