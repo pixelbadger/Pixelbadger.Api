@@ -14,7 +14,7 @@ The solution follows Clean Architecture principles with these layers:
 
 - **Language**: C# with .NET 8
 - **Patterns**: CQRS with MediatR, Clean Architecture, SOLID principles
-- **Framework**: ASP.NET Core Web API
+- **Framework**: ASP.NET Core Web API with Controller-based architecture
 - **Authentication**: Azure AD/Entra ID with JWT Bearer tokens
 
 ## Testing Structure
@@ -35,6 +35,15 @@ The solution includes NUnit test projects for the core architectural layers:
 - Integration tests for external service dependencies
 
 Domain entities (simple data models) do not require unit tests, but domain services with business logic must be tested using the Domain.Tests project.
+
+## API Controllers
+
+The API uses full controller-based architecture instead of minimal API map registrations. Controllers are located in the `src/Pixelbadger.Api/Controllers/` directory and follow standard ASP.NET Core conventions:
+
+- Controllers inherit from `ControllerBase`
+- Use `[ApiController]` and `[Route("[controller]")]` attributes
+- Apply `[Authorize]` attribute for protected endpoints
+- Return `IActionResult` for proper HTTP response handling
 
 ## Authentication
 
@@ -57,7 +66,7 @@ Authentication is configured in `appsettings.json`:
 ### Endpoints
 
 - **Public endpoints**: `/health` - No authentication required
-- **Protected endpoints**: `/weatherforecast` - Requires valid Azure AD JWT token
+- **Protected endpoints**: `/weather/forecast` - Requires valid Azure AD JWT token
 
 ### Setup Requirements
 
