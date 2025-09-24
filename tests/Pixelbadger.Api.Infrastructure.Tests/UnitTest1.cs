@@ -41,7 +41,7 @@ public class AuthenticationIntegrationTests
     public async Task WeatherForecastEndpoint_ShouldReturnUnauthorized_WithoutAuthentication()
     {
         // Act
-        var response = await _client.GetAsync("/weatherforecast");
+        var response = await _client.GetAsync("/weather/forecast");
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
