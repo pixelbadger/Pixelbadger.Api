@@ -1,5 +1,6 @@
 using Microsoft.Identity.Web;
 using Pixelbadger.Api.Application.Queries;
+using Pixelbadger.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,9 @@ builder.Services.AddAuthentication()
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
 builder.Services.AddAuthorization();
+
+// Add Infrastructure services (including OpenAI)
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetWeatherForecastHandler).Assembly));
