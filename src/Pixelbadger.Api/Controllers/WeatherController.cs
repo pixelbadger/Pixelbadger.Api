@@ -1,5 +1,7 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Pixelbadger.Api.Application.Queries;
 
 namespace Pixelbadger.Api.Controllers;
 
@@ -8,28 +10,17 @@ namespace Pixelbadger.Api.Controllers;
 [Authorize]
 public class WeatherController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
+    private readonly IMediator _mediator;
+
+    public WeatherController(IMediator mediator)
     {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+        _mediator = mediator;
+    }
 
     [HttpGet("forecast")]
-    public IActionResult GetWeatherForecast()
+    public async Task<IActionResult> GetWeatherForecast()
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                Summaries[Random.Shared.Next(Summaries.Length)]
-            ))
-            .ToArray();
-
+        var forecast = await _mediator.Send(new GetWeatherForecastQuery());
         return Ok(forecast);
     }
-}
-
-public record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
