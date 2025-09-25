@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pixelbadger.Api.Application\Pixelbadger.Api.Application.csproj" />
+    <ProjectReference Include="..\Pixelbadger.Api.Infrastructure\Pixelbadger.Api.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
