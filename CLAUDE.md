@@ -36,14 +36,75 @@ The solution includes NUnit test projects for the core architectural layers:
 
 Domain entities (simple data models) do not require unit tests, but domain services with business logic must be tested using the Domain.Tests project.
 
+## CQRS with MediatR Implementation
+
+The Application layer implements the CQRS pattern using MediatR for handling commands and queries:
+
+### Request/Response Pattern
+
+- **Queries**: Implement `IRequest<TResponse>` for data retrieval operations
+- **Commands**: Implement `IRequest` or `IRequest<TResponse>` for data modification operations
+- **Handlers**: Implement `IRequestHandler<TRequest, TResponse>` to process requests
+
+### MediatR Configuration
+
+MediatR is configured in `Program.cs`:
+
+```csharp
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetWeatherForecastHandler).Assembly));
+```
+
+### Example Implementation
+
+Query definition:
+```csharp
+public record GetWeatherForecastQuery : IRequest<IEnumerable<WeatherForecastDto>>;
+```
+
+Handler implementation:
+```csharp
+public class GetWeatherForecastHandler : IRequestHandler<GetWeatherForecastQuery, IEnumerable<WeatherForecastDto>>
+{
+    public Task<IEnumerable<WeatherForecastDto>> Handle(GetWeatherForecastQuery request, CancellationToken cancellationToken)
+    {
+        // Business logic implementation
+    }
+}
+```
+
 ## API Controllers
 
-The API uses full controller-based architecture instead of minimal API map registrations. Controllers are located in the `src/Pixelbadger.Api/Controllers/` directory and follow standard ASP.NET Core conventions:
+The API uses full controller-based architecture that communicates with the Application layer through MediatR. Controllers are located in the `src/Pixelbadger.Api/Controllers/` directory and follow these conventions:
 
 - Controllers inherit from `ControllerBase`
 - Use `[ApiController]` and `[Route("[controller]")]` attributes
 - Apply `[Authorize]` attribute for protected endpoints
 - Return `IActionResult` for proper HTTP response handling
+- Inject `IMediator` to send commands and queries to the Application layer
+
+### Controller Example
+
+```csharp
+[ApiController]
+[Route("[controller]")]
+[Authorize]
+public class WeatherController : ControllerBase
+{
+    private readonly IMediator _mediator;
+
+    public WeatherController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [HttpGet("forecast")]
+    public async Task<IActionResult> GetWeatherForecast()
+    {
+        var forecast = await _mediator.Send(new GetWeatherForecastQuery());
+        return Ok(forecast);
+    }
+}
+```
 
 ## Authentication
 
