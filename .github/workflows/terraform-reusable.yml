@@ -1,0 +1,116 @@
+name: Reusable Terraform Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      terraform_action:
+        description: 'Terraform action: plan or apply'
+        required: true
+        type: string
+      working_directory:
+        description: 'Terraform working directory'
+        required: false
+        type: string
+        default: 'infrastructure/terraform'
+    secrets:
+      AZURE_CREDENTIALS:
+        required: true
+      TERRAFORM_STATE_RG:
+        required: true
+      TERRAFORM_STATE_SA:
+        required: true
+      TERRAFORM_STATE_CONTAINER:
+        required: true
+    outputs:
+      app_service_name:
+        description: 'Name of the deployed App Service'
+        value: ${{ jobs.terraform.outputs.app_service_name }}
+      plan_exists:
+        description: 'Whether a Terraform plan was created'
+        value: ${{ jobs.terraform.outputs.plan_exists }}
+
+jobs:
+  terraform:
+    name: Terraform ${{ inputs.terraform_action }}
+    runs-on: ubuntu-latest
+    outputs:
+      app_service_name: ${{ steps.outputs.outputs.app_service_name }}
+      plan_exists: ${{ steps.plan.outputs.plan_exists }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Azure and Terraform
+        uses: ./.github/actions/azure-setup
+        with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Terraform Init
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TERRAFORM_STATE_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TERRAFORM_STATE_SA }}" \
+            -backend-config="container_name=${{ secrets.TERRAFORM_STATE_CONTAINER }}" \
+            -backend-config="key=pixelbadger-${{ inputs.environment }}.tfstate"
+
+      - name: Terraform Validate
+        working-directory: ${{ inputs.working_directory }}
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        if: inputs.terraform_action == 'plan'
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          terraform plan -out=tfplan -var="environment=${{ inputs.environment }}"
+          if [ -f tfplan ]; then
+            echo "plan_exists=true" >> $GITHUB_OUTPUT
+            terraform show -no-color tfplan > plan-output.txt
+          else
+            echo "plan_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload Plan
+        if: inputs.terraform_action == 'plan' && steps.plan.outputs.plan_exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ inputs.environment }}
+          path: |
+            ${{ inputs.working_directory }}/tfplan
+            ${{ inputs.working_directory }}/plan-output.txt
+          retention-days: 7
+
+      - name: Download Plan
+        if: inputs.terraform_action == 'apply'
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan-${{ inputs.environment }}
+          path: ${{ inputs.working_directory }}
+
+      - name: Terraform Apply
+        if: inputs.terraform_action == 'apply'
+        working-directory: ${{ inputs.working_directory }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Get Terraform Outputs
+        id: outputs
+        if: inputs.terraform_action == 'apply'
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          APP_SERVICE_NAME=$(terraform output -raw app_service_name)
+          echo "app_service_name=$APP_SERVICE_NAME" >> $GITHUB_OUTPUT
+          terraform output -json > terraform-outputs.json
+
+      - name: Upload Outputs
+        if: inputs.terraform_action == 'apply'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs-${{ inputs.environment }}
+          path: ${{ inputs.working_directory }}/terraform-outputs.json
+          retention-days: 30

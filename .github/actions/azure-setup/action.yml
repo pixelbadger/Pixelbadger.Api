@@ -1,0 +1,25 @@
+name: 'Azure Setup'
+description: 'Setup Azure CLI and Terraform with authentication'
+
+inputs:
+  azure_credentials:
+    description: 'Azure service principal credentials'
+    required: true
+  terraform_version:
+    description: 'Terraform version to install'
+    required: false
+    default: '1.6.0'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform_version }}
+        terraform_wrapper: false
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ inputs.azure_credentials }}
