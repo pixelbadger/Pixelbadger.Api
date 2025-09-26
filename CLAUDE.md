@@ -1,6 +1,8 @@
 This repository implements a generalist toolkit API providing varied explorations in functionality.
 The project is written using SOLID principles and Clean Architecture.
 
+**IMPORTANT: When creating pull requests for new features, always review and update this CLAUDE.md file to reflect any architectural changes, new patterns, infrastructure updates, or deployment processes. Keep this documentation current and comprehensive.**
+
 ## Architecture
 
 The solution follows Clean Architecture principles with these layers:
@@ -136,3 +138,89 @@ To use authentication:
 1. Register an application in Azure AD/Entra ID
 2. Update `appsettings.json` with your actual TenantId and ClientId
 3. Clients must obtain JWT tokens from Azure AD and include them in Authorization headers
+
+## Infrastructure and Deployment
+
+The solution includes Terraform infrastructure as code and GitHub Actions CI/CD pipelines for automated deployment to Azure.
+
+### Terraform Infrastructure
+
+Infrastructure is defined in `infrastructure/terraform/` using Terraform with the Azure provider:
+
+- **Resource Group**: `rg-pixelbadger-{environment}`
+- **App Service Plan**: `asp-pixelbadger-{environment}` (F1 free tier for cost optimization)
+- **App Service**: `app-pixelbadger-{environment}` (Linux with .NET 8)
+- **Remote State**: Stored in Azure Storage for team collaboration
+
+#### Resource Naming Convention
+
+All Azure resources follow standard naming conventions using the workload name "pixelbadger":
+- Resource groups: `rg-pixelbadger-{environment}`
+- App Service plans: `asp-pixelbadger-{environment}`
+- App Services: `app-pixelbadger-{environment}`
+
+#### Environment Support
+
+The infrastructure supports multiple environments (dev, staging, prod) through Terraform variables:
+- `workload`: Default "pixelbadger"
+- `environment`: Environment name (dev, staging, prod)
+- `location`: Azure region (default "East US")
+
+### GitHub Actions Workflows
+
+The repository includes reusable GitHub Actions workflows for deployment automation:
+
+#### Core Workflows
+
+1. **terraform-deploy.yml**: Manual infrastructure deployment
+   - Plans infrastructure changes with approval gates
+   - Deploys infrastructure to specified environment
+   - Uses environment-specific Terraform state files
+
+2. **api-deploy.yml**: Manual API build and deployment
+   - Builds .NET 8 API with tests
+   - Deploys to Azure App Service
+   - Includes health checks and validation
+
+3. **release.yml**: Combined release pipeline
+   - Orchestrates infrastructure and API deployment
+   - Supports skipping infrastructure if already deployed
+   - Provides release summary and status
+
+#### Reusable Components
+
+- **terraform-reusable.yml**: Shared Terraform workflow for plan/apply operations
+- **api-reusable.yml**: Shared API build and deployment workflow
+- **azure-setup action**: Composite action for Azure authentication and Terraform setup
+
+#### Required GitHub Secrets
+
+For deployment workflows to function, configure these repository secrets:
+
+- `AZURE_CREDENTIALS`: Service principal credentials in JSON format
+- `TERRAFORM_STATE_RG`: Resource group containing Terraform state storage
+- `TERRAFORM_STATE_SA`: Storage account for Terraform state
+- `TERRAFORM_STATE_CONTAINER`: Blob container for state files
+
+#### Azure Service Principal Format
+
+```json
+{
+  "clientId": "your-client-id",
+  "clientSecret": "your-client-secret",
+  "subscriptionId": "your-subscription-id",
+  "tenantId": "your-tenant-id"
+}
+```
+
+### Deployment Process
+
+1. **Infrastructure Deployment**: Run terraform-deploy workflow to create Azure resources
+2. **API Deployment**: Run api-deploy workflow to build and deploy the application
+3. **Complete Release**: Use release workflow for end-to-end deployment
+
+All workflows are manual triggers with environment selection for controlled deployments.
+
+### Health Monitoring
+
+The deployed API includes health check endpoints at `/health` for monitoring application status and validating successful deployments.
