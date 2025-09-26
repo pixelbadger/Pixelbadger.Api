@@ -1,6 +1,8 @@
 This repository implements a generalist toolkit API providing varied explorations in functionality.
 The project is written using SOLID principles and Clean Architecture.
 
+**IMPORTANT: When creating pull requests for new features, always review and update this CLAUDE.md file to reflect any architectural changes, new patterns, infrastructure updates, or deployment processes. Keep this documentation current and comprehensive.**
+
 ## Architecture
 
 The solution follows Clean Architecture principles with these layers:
