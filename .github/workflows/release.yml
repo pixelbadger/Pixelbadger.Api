@@ -1,0 +1,87 @@
+name: Release Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      skip_infrastructure:
+        description: 'Skip infrastructure deployment (if already deployed)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  # Infrastructure Jobs
+  terraform-plan:
+    name: Plan Infrastructure
+    if: ${{ !github.event.inputs.skip_infrastructure }}
+    uses: ./.github/workflows/terraform-reusable.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      terraform_action: 'plan'
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      TERRAFORM_STATE_RG: ${{ secrets.TERRAFORM_STATE_RG }}
+      TERRAFORM_STATE_SA: ${{ secrets.TERRAFORM_STATE_SA }}
+      TERRAFORM_STATE_CONTAINER: ${{ secrets.TERRAFORM_STATE_CONTAINER }}
+
+  terraform-deploy:
+    name: Deploy Infrastructure
+    if: ${{ !github.event.inputs.skip_infrastructure && needs.terraform-plan.outputs.plan_exists == 'true' }}
+    needs: terraform-plan
+    uses: ./.github/workflows/terraform-reusable.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      terraform_action: 'apply'
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      TERRAFORM_STATE_RG: ${{ secrets.TERRAFORM_STATE_RG }}
+      TERRAFORM_STATE_SA: ${{ secrets.TERRAFORM_STATE_SA }}
+      TERRAFORM_STATE_CONTAINER: ${{ secrets.TERRAFORM_STATE_CONTAINER }}
+
+  # Application Jobs
+  deploy-api:
+    name: Deploy API
+    needs: [terraform-deploy]
+    if: ${{ always() && (needs.terraform-deploy.result == 'success' || github.event.inputs.skip_infrastructure) }}
+    uses: ./.github/workflows/api-reusable.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      app_service_name: ${{ needs.terraform-deploy.outputs.app_service_name }}
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+  release-summary:
+    name: Release Summary
+    runs-on: ubuntu-latest
+    needs: [terraform-deploy, deploy-api]
+    if: always()
+
+    steps:
+      - name: Release Summary
+        run: |
+          echo "## 🚀 Release Summary for ${{ github.event.inputs.environment }}"
+          echo ""
+
+          if [ "${{ github.event.inputs.skip_infrastructure }}" == "true" ]; then
+            echo "📋 Infrastructure: Skipped (as requested)"
+          elif [ "${{ needs.terraform-deploy.result }}" == "success" ]; then
+            echo "✅ Infrastructure: Deployed successfully"
+          else
+            echo "❌ Infrastructure: Failed or skipped"
+          fi
+
+          if [ "${{ needs.deploy-api.result }}" == "success" ]; then
+            echo "✅ API Deployment: Successful"
+            echo "🌐 App URL: https://app-pixelbadger-${{ github.event.inputs.environment }}.azurewebsites.net"
+          else
+            echo "❌ API Deployment: Failed"
+          fi

@@ -1,0 +1,23 @@
+name: Build and Deploy API
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  deploy-api:
+    name: Build and Deploy API
+    uses: ./.github/workflows/api-reusable.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}

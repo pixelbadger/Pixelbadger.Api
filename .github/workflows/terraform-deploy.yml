@@ -1,0 +1,41 @@
+name: Terraform Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  terraform-plan:
+    name: Plan Infrastructure
+    uses: ./.github/workflows/terraform-reusable.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      terraform_action: 'plan'
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      TERRAFORM_STATE_RG: ${{ secrets.TERRAFORM_STATE_RG }}
+      TERRAFORM_STATE_SA: ${{ secrets.TERRAFORM_STATE_SA }}
+      TERRAFORM_STATE_CONTAINER: ${{ secrets.TERRAFORM_STATE_CONTAINER }}
+
+  terraform-deploy:
+    name: Deploy Infrastructure
+    uses: ./.github/workflows/terraform-reusable.yml
+    needs: terraform-plan
+    if: needs.terraform-plan.outputs.plan_exists == 'true'
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      terraform_action: 'apply'
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      TERRAFORM_STATE_RG: ${{ secrets.TERRAFORM_STATE_RG }}
+      TERRAFORM_STATE_SA: ${{ secrets.TERRAFORM_STATE_SA }}
+      TERRAFORM_STATE_CONTAINER: ${{ secrets.TERRAFORM_STATE_CONTAINER }}

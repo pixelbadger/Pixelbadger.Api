@@ -1,0 +1,138 @@
+name: Reusable API Build and Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      app_service_name:
+        description: 'Name of the App Service to deploy to'
+        required: false
+        type: string
+      skip_build:
+        description: 'Skip build step (use existing artifact)'
+        required: false
+        type: boolean
+        default: false
+      dotnet_version:
+        description: '.NET version to use'
+        required: false
+        type: string
+        default: '8.0.x'
+      api_project_path:
+        description: 'Path to the API project file'
+        required: false
+        type: string
+        default: 'src/Pixelbadger.Api/Pixelbadger.Api.csproj'
+    secrets:
+      AZURE_CREDENTIALS:
+        required: true
+
+jobs:
+  build:
+    name: Build API
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_build }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+      - name: Publish API
+        run: |
+          dotnet publish ${{ inputs.api_project_path }} \
+            --configuration Release \
+            --no-build \
+            --output ./publish
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-build-${{ inputs.environment }}
+          path: ./publish
+          retention-days: 7
+
+  deploy:
+    name: Deploy API
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always() && (needs.build.result == 'success' || inputs.skip_build)
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: api-build-${{ inputs.environment }}
+          path: ./publish
+
+      - name: Setup Azure and Terraform
+        uses: ./.github/actions/azure-setup
+        with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get App Service Name
+        id: get-app-name
+        run: |
+          if [ -n "${{ inputs.app_service_name }}" ]; then
+            APP_NAME="${{ inputs.app_service_name }}"
+          else
+            APP_NAME="app-pixelbadger-${{ inputs.environment }}"
+          fi
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "Deploying to: $APP_NAME"
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ steps.get-app-name.outputs.app_name }}
+          package: ./publish
+
+      - name: Configure App Settings
+        run: |
+          az webapp config appsettings set \
+            --name ${{ steps.get-app-name.outputs.app_name }} \
+            --resource-group rg-pixelbadger-${{ inputs.environment }} \
+            --settings \
+              ASPNETCORE_ENVIRONMENT=${{ inputs.environment }} \
+              WEBSITE_RUN_FROM_PACKAGE=1
+
+      - name: Restart App Service
+        run: |
+          az webapp restart \
+            --name ${{ steps.get-app-name.outputs.app_name }} \
+            --resource-group rg-pixelbadger-${{ inputs.environment }}
+
+      - name: Health Check
+        run: |
+          APP_URL="https://${{ steps.get-app-name.outputs.app_name }}.azurewebsites.net"
+          echo "🚀 Deployment complete!"
+          echo "App URL: $APP_URL"
+
+          # Wait for app to start
+          echo "⏳ Waiting for application to start..."
+          sleep 30
+
+          # Check health endpoint
+          echo "🏥 Running health check..."
+          if curl -f "$APP_URL/health" > /dev/null 2>&1; then
+            echo "✅ Health check passed - Application is running!"
+          else
+            echo "❌ Health check failed - Please check application logs"
+            exit 1
+          fi
