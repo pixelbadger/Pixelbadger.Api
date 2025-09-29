@@ -1,5 +1,6 @@
 using Microsoft.Identity.Web;
 using Pixelbadger.Api.Application.Queries;
+using Pixelbadger.Api.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,15 @@ builder.Services.AddAuthorization();
 
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetWeatherForecastHandler).Assembly));
+
+// Add Microsoft Graph SharePoint service
+var graphConfig = builder.Configuration.GetSection("MicrosoftGraph");
+builder.Services.AddSingleton<ISharePointService>(sp =>
+    new SharePointService(
+        graphConfig["TenantId"] ?? throw new InvalidOperationException("MicrosoftGraph:TenantId is required"),
+        graphConfig["ClientId"] ?? throw new InvalidOperationException("MicrosoftGraph:ClientId is required"),
+        graphConfig["ClientSecret"] ?? throw new InvalidOperationException("MicrosoftGraph:ClientSecret is required")
+    ));
 
 // Add services to the container.
 builder.Services.AddControllers();

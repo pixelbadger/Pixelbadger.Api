@@ -10,4 +10,9 @@
     <PackageReference Include="MediatR" Version="13.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Pixelbadger.Api.Domain\Pixelbadger.Api.Domain.csproj" />
+    <ProjectReference Include="..\Pixelbadger.Api.Infrastructure\Pixelbadger.Api.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
