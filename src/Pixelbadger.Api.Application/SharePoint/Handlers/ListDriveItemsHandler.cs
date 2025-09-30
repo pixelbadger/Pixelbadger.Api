@@ -1,21 +1,24 @@
 using MediatR;
 using Pixelbadger.Api.Application.SharePoint.Queries;
-using Pixelbadger.Api.Domain.Entities.SharePoint;
-using Pixelbadger.Api.Infrastructure.Services;
+using Pixelbadger.Api.Application.SharePoint.Services;
 
 namespace Pixelbadger.Api.Application.SharePoint.Handlers;
 
-public class ListDriveItemsHandler : IRequestHandler<ListDriveItemsQuery, IEnumerable<SharePointDriveItem>>
+public class ListDriveItemsHandler : IRequestHandler<ListDriveItemsQuery, string>
 {
-    private readonly ISharePointService _sharePointService;
+    private readonly ISharePointTreeFormatter _treeFormatter;
 
-    public ListDriveItemsHandler(ISharePointService sharePointService)
+    public ListDriveItemsHandler(ISharePointTreeFormatter treeFormatter)
     {
-        _sharePointService = sharePointService;
+        _treeFormatter = treeFormatter;
     }
 
-    public async Task<IEnumerable<SharePointDriveItem>> Handle(ListDriveItemsQuery request, CancellationToken cancellationToken)
+    public async Task<string> Handle(ListDriveItemsQuery request, CancellationToken cancellationToken)
     {
-        return await _sharePointService.ListDriveItemsAsync(request.SiteId, request.ItemPath, request.UserAccessToken, cancellationToken);
+        return await _treeFormatter.FormatTreeAsync(
+            request.SiteId,
+            request.ItemPath,
+            request.UserAccessToken,
+            cancellationToken);
     }
 }

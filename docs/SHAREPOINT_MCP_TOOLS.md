@@ -66,45 +66,43 @@ Retrieves basic information about a SharePoint site.
 
 **Endpoint:** `GET /mcp/sharepoint/sites/{siteId}/items?path={path}`
 
-Lists all items (folders and documents) in a specified folder, similar to the `ls` command in Unix.
+Lists all items (folders and documents) in a specified folder, recursively displaying the entire folder tree in a hierarchical text format similar to the Unix `tree` command.
 
 **Parameters:**
 - `siteId` - SharePoint site ID
 - `path` (optional) - Folder path (empty for root, or path like "/Documents/Folder1")
 
-**Response:**
-```json
-[
-  {
-    "id": "item-id-1",
-    "name": "Documents",
-    "webUrl": "https://...",
-    "parentPath": "",
-    "isFolder": true,
-    "size": 0,
-    "createdDateTime": "2024-01-01T00:00:00Z",
-    "lastModifiedDateTime": "2024-01-15T00:00:00Z",
-    "createdBy": "John Doe",
-    "lastModifiedBy": "Jane Smith"
-  },
-  {
-    "id": "item-id-2",
-    "name": "Report.docx",
-    "webUrl": "https://...",
-    "parentPath": "",
-    "isFolder": false,
-    "size": 12345,
-    "createdDateTime": "2024-01-01T00:00:00Z",
-    "lastModifiedDateTime": "2024-01-15T00:00:00Z",
-    "createdBy": "John Doe",
-    "lastModifiedBy": "Jane Smith"
-  }
-]
+**Response Format:** `text/plain`
+
+The response is a hierarchical tree structure with the following format:
+- **Folders**: `Name/ [d:folder_id] X items MM-DD HH:MM`
+- **Files**: `Name [f:file_id] size ext MM-DD HH:MM`
+- **Indentation**: 2 spaces per level
+- **File sizes**: Human-readable format (B, K, M, G)
+- **Dates**: MM-DD HH:MM format showing last modified time
+
+**Response Example:**
+```
+/ [d:root] 3 items
+  Marketing/ [d:folder_001] 2 items 09-28 16:45
+    Brand Guidelines 2025.pdf [f:doc_001] 4.6M pdf 03-12 10:20
+    Campaigns/ [d:folder_002] 2 items 09-25 14:30
+      Q3_Strategy.docx [f:doc_002] 281K docx 07-08 09:15
+      email_templates.html [f:doc_003] 34K html 08-15 13:45
+  Engineering/ [d:folder_003] 1 items 09-29 18:20
+    architecture_diagram.png [f:doc_004] 764K png 09-15 14:30
+  Finance/ [d:folder_004] 0 items 09-27 10:30
 ```
 
 **Usage Example:**
-- List root: `/mcp/sharepoint/sites/{siteId}/items`
-- List subfolder: `/mcp/sharepoint/sites/{siteId}/items?path=/Documents/Projects`
+- List root tree: `/mcp/sharepoint/sites/{siteId}/items`
+- List subfolder tree: `/mcp/sharepoint/sites/{siteId}/items?path=/Documents/Projects`
+
+**Notes:**
+- The tree is built recursively, showing all nested folders and files
+- Unique IDs (`folder_XXX`, `doc_XXX`) are assigned sequentially for reference
+- File extensions are extracted from file names
+- Empty folders show "0 items"
 
 ### 3. Search Documents
 

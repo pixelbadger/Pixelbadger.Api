@@ -67,6 +67,7 @@ public class SharePointController : ControllerBase
     [HttpGet("sites/{siteId}/items")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [Produces("text/plain")]
     public async Task<IActionResult> ListItems(string siteId, [FromQuery] string path = "")
     {
         try
@@ -74,7 +75,7 @@ public class SharePointController : ControllerBase
             var userToken = GetUserAccessToken();
             var query = new ListDriveItemsQuery(siteId, path, userToken);
             var result = await _mediator.Send(query);
-            return Ok(result);
+            return Content(result, "text/plain");
         }
         catch (Exception ex)
         {

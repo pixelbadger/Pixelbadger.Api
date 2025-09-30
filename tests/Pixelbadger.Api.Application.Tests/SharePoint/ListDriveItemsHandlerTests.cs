@@ -2,56 +2,33 @@ using Moq;
 using NUnit.Framework;
 using Pixelbadger.Api.Application.SharePoint.Handlers;
 using Pixelbadger.Api.Application.SharePoint.Queries;
-using Pixelbadger.Api.Domain.Entities.SharePoint;
-using Pixelbadger.Api.Infrastructure.Services;
+using Pixelbadger.Api.Application.SharePoint.Services;
 
 namespace Pixelbadger.Api.Application.Tests.SharePoint;
 
 [TestFixture]
 public class ListDriveItemsHandlerTests
 {
-    private Mock<ISharePointService> _mockSharePointService = null!;
+    private Mock<ISharePointTreeFormatter> _mockTreeFormatter = null!;
     private ListDriveItemsHandler _handler = null!;
 
     [SetUp]
     public void Setup()
     {
-        _mockSharePointService = new Mock<ISharePointService>();
-        _handler = new ListDriveItemsHandler(_mockSharePointService.Object);
+        _mockTreeFormatter = new Mock<ISharePointTreeFormatter>();
+        _handler = new ListDriveItemsHandler(_mockTreeFormatter.Object);
     }
 
     [Test]
-    public async Task Handle_RootPath_ReturnsRootItems()
+    public async Task Handle_RootPath_ReturnsFormattedTree()
     {
         // Arrange
         var siteId = "site-id";
-        var expectedItems = new List<SharePointDriveItem>
-        {
-            new SharePointDriveItem
-            {
-                Id = "item1",
-                Name = "Documents",
-                IsFolder = true,
-                ParentPath = "",
-                Size = 0,
-                CreatedDateTime = DateTime.UtcNow,
-                LastModifiedDateTime = DateTime.UtcNow
-            },
-            new SharePointDriveItem
-            {
-                Id = "item2",
-                Name = "Shared",
-                IsFolder = true,
-                ParentPath = "",
-                Size = 0,
-                CreatedDateTime = DateTime.UtcNow,
-                LastModifiedDateTime = DateTime.UtcNow
-            }
-        };
+        var expectedTree = "/ [d:root] 2 items\n  Documents/ [d:folder_001] 0 items 09-30 12:00\n  Shared/ [d:folder_002] 0 items 09-30 12:00\n";
 
-        _mockSharePointService
-            .Setup(s => s.ListDriveItemsAsync(siteId, "", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedItems);
+        _mockTreeFormatter
+            .Setup(f => f.FormatTreeAsync(siteId, "", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedTree);
 
         var query = new ListDriveItemsQuery(siteId, "");
 
@@ -60,34 +37,22 @@ public class ListDriveItemsHandlerTests
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(2));
-        Assert.That(result.First().Name, Is.EqualTo("Documents"));
-        _mockSharePointService.Verify(s => s.ListDriveItemsAsync(siteId, "", It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+        Assert.That(result, Does.Contain("/ [d:root]"));
+        Assert.That(result, Does.Contain("Documents/"));
+        _mockTreeFormatter.Verify(f => f.FormatTreeAsync(siteId, "", It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
-    public async Task Handle_SpecificPath_ReturnsItemsInPath()
+    public async Task Handle_SpecificPath_ReturnsFormattedTree()
     {
         // Arrange
         var siteId = "site-id";
         var path = "/Documents/Projects";
-        var expectedItems = new List<SharePointDriveItem>
-        {
-            new SharePointDriveItem
-            {
-                Id = "doc1",
-                Name = "Project1.docx",
-                IsFolder = false,
-                ParentPath = path,
-                Size = 12345,
-                CreatedDateTime = DateTime.UtcNow,
-                LastModifiedDateTime = DateTime.UtcNow
-            }
-        };
+        var expectedTree = "/ [d:root] 1 items\n  Project1.docx [f:doc_001] 12K docx 09-30 12:00\n";
 
-        _mockSharePointService
-            .Setup(s => s.ListDriveItemsAsync(siteId, path, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedItems);
+        _mockTreeFormatter
+            .Setup(f => f.FormatTreeAsync(siteId, path, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedTree);
 
         var query = new ListDriveItemsQuery(siteId, path);
 
@@ -96,8 +61,7 @@ public class ListDriveItemsHandlerTests
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-        Assert.That(result.First().IsFolder, Is.False);
-        Assert.That(result.First().Size, Is.GreaterThan(0));
+        Assert.That(result, Does.Contain("Project1.docx"));
+        Assert.That(result, Does.Contain("[f:doc_001]"));
     }
 }

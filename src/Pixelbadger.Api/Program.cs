@@ -1,5 +1,6 @@
 using Microsoft.Identity.Web;
 using Pixelbadger.Api.Application.Queries;
+using Pixelbadger.Api.Application.SharePoint.Services;
 using Pixelbadger.Api.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,9 @@ builder.Services.AddSingleton<ISharePointService>(sp =>
         graphConfig["ClientId"] ?? throw new InvalidOperationException("MicrosoftGraph:ClientId is required"),
         graphConfig["ClientSecret"] ?? throw new InvalidOperationException("MicrosoftGraph:ClientSecret is required")
     ));
+
+// Add SharePoint tree formatter
+builder.Services.AddScoped<ISharePointTreeFormatter, SharePointTreeFormatter>();
 
 // Add services to the container.
 builder.Services.AddControllers();
