@@ -15,11 +15,12 @@ The SharePoint MCP tools provide LLM agents with the ability to:
 ### Azure AD App Registration
 
 1. Register an application in Azure AD/Entra ID
-2. Grant the following Microsoft Graph API permissions:
+2. Grant the following Microsoft Graph API **delegated** permissions (for on-behalf-of flow):
    - `Sites.Read.All` - Read items in all site collections
    - `Files.Read.All` - Read files in all site collections
-3. Create a client secret for the application
-4. Update `appsettings.json` with your credentials:
+3. Grant **admin consent** for these permissions
+4. Create a client secret for the application
+5. Update `appsettings.json` with your credentials:
 
 ```json
 {
@@ -30,6 +31,12 @@ The SharePoint MCP tools provide LLM agents with the ability to:
   }
 }
 ```
+
+**Important:** The API uses OAuth 2.0 On-Behalf-Of (OBO) flow, meaning:
+- Graph API calls execute with the **authenticated user's permissions**
+- Users must have appropriate SharePoint access rights
+- Audit logs show the actual user, not the service principal
+- The service will fall back to app-only authentication if no user token is provided
 
 ## Available MCP Tools
 
@@ -194,6 +201,23 @@ All endpoints require Azure AD authentication. Include a valid JWT bearer token 
 Authorization: Bearer <azure-ad-jwt-token>
 ```
 
+### On-Behalf-Of (OBO) Flow
+
+The API implements OAuth 2.0 On-Behalf-Of authentication:
+
+1. **User authenticates** to the API with Azure AD JWT token
+2. **API extracts** the user's bearer token from the Authorization header
+3. **Token flows** through the application layers:
+   - Controller → MediatR Query → Handler → Infrastructure Service
+4. **Service exchanges** user token for Graph API token using OBO flow
+5. **Graph API calls** execute with user's delegated permissions
+
+**Benefits:**
+- User-level SharePoint permissions are respected
+- Audit trails show actual user activity
+- Enhanced security through least-privilege access
+- No need for elevated app-only permissions
+
 ## Error Responses
 
 - `401 Unauthorized` - Missing or invalid authentication token
@@ -202,12 +226,19 @@ Authorization: Bearer <azure-ad-jwt-token>
 
 ## Architecture
 
-The implementation follows Clean Architecture principles:
+The implementation follows Clean Architecture principles with proper separation of concerns:
 
 - **Domain Layer**: SharePoint entities (Site, Folder, Document, DriveItem)
-- **Infrastructure Layer**: Microsoft Graph service implementation
-- **Application Layer**: CQRS queries and MediatR handlers
-- **API Layer**: MCP-compatible REST controller
+- **Infrastructure Layer**: Microsoft Graph service implementation with OBO credential management
+- **Application Layer**: CQRS queries (with UserAccessToken property) and MediatR handlers
+- **API Layer**: MCP-compatible REST controller with token extraction
+
+**Token Flow (maintaining Clean Architecture):**
+1. Controller extracts bearer token from HTTP Authorization header
+2. Token passed to MediatR query as property
+3. Handler forwards token to infrastructure service method
+4. Service creates GraphServiceClient with OnBehalfOfCredential per-request
+5. No HTTP dependencies leak into lower layers
 
 ## Testing
 
