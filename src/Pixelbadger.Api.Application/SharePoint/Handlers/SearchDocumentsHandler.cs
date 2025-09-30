@@ -16,6 +16,6 @@ public class SearchDocumentsHandler : IRequestHandler<SearchDocumentsQuery, IEnu
 
     public async Task<IEnumerable<SharePointDriveItem>> Handle(SearchDocumentsQuery request, CancellationToken cancellationToken)
     {
-        return await _sharePointService.SearchDocumentsAsync(request.SiteId, request.SearchQuery, cancellationToken);
+        return await _sharePointService.SearchDocumentsAsync(request.SiteId, request.SearchQuery, request.UserAccessToken, cancellationToken);
     }
 }

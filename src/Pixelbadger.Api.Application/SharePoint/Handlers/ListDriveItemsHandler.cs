@@ -16,6 +16,6 @@ public class ListDriveItemsHandler : IRequestHandler<ListDriveItemsQuery, IEnume
 
     public async Task<IEnumerable<SharePointDriveItem>> Handle(ListDriveItemsQuery request, CancellationToken cancellationToken)
     {
-        return await _sharePointService.ListDriveItemsAsync(request.SiteId, request.ItemPath, cancellationToken);
+        return await _sharePointService.ListDriveItemsAsync(request.SiteId, request.ItemPath, request.UserAccessToken, cancellationToken);
     }
 }

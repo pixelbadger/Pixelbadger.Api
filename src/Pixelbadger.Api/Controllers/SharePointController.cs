@@ -22,6 +22,19 @@ public class SharePointController : ControllerBase
         _logger = logger;
     }
 
+    private string? GetUserAccessToken()
+    {
+        var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        // Extract the token after "Bearer "
+        return authHeader.Substring(7);
+    }
+
     /// <summary>
     /// MCP Tool: Get SharePoint site information
     /// </summary>
@@ -34,7 +47,8 @@ public class SharePointController : ControllerBase
     {
         try
         {
-            var query = new GetSiteInfoQuery(siteId);
+            var userToken = GetUserAccessToken();
+            var query = new GetSiteInfoQuery(siteId, userToken);
             var result = await _mediator.Send(query);
             return Ok(result);
         }
@@ -57,7 +71,8 @@ public class SharePointController : ControllerBase
     {
         try
         {
-            var query = new ListDriveItemsQuery(siteId, path);
+            var userToken = GetUserAccessToken();
+            var query = new ListDriveItemsQuery(siteId, path, userToken);
             var result = await _mediator.Send(query);
             return Ok(result);
         }
@@ -81,7 +96,8 @@ public class SharePointController : ControllerBase
     {
         try
         {
-            var query = new GetDocumentMetadataQuery(siteId, itemId);
+            var userToken = GetUserAccessToken();
+            var query = new GetDocumentMetadataQuery(siteId, itemId, userToken);
             var result = await _mediator.Send(query);
             return Ok(result);
         }
@@ -109,7 +125,8 @@ public class SharePointController : ControllerBase
 
         try
         {
-            var query = new SearchDocumentsQuery(siteId, q);
+            var userToken = GetUserAccessToken();
+            var query = new SearchDocumentsQuery(siteId, q, userToken);
             var result = await _mediator.Send(query);
             return Ok(result);
         }

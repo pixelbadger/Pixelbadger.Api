@@ -50,7 +50,7 @@ public class ListDriveItemsHandlerTests
         };
 
         _mockSharePointService
-            .Setup(s => s.ListDriveItemsAsync(siteId, "", It.IsAny<CancellationToken>()))
+            .Setup(s => s.ListDriveItemsAsync(siteId, "", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedItems);
 
         var query = new ListDriveItemsQuery(siteId, "");
@@ -62,7 +62,7 @@ public class ListDriveItemsHandlerTests
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count(), Is.EqualTo(2));
         Assert.That(result.First().Name, Is.EqualTo("Documents"));
-        _mockSharePointService.Verify(s => s.ListDriveItemsAsync(siteId, "", It.IsAny<CancellationToken>()), Times.Once);
+        _mockSharePointService.Verify(s => s.ListDriveItemsAsync(siteId, "", It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
@@ -86,7 +86,7 @@ public class ListDriveItemsHandlerTests
         };
 
         _mockSharePointService
-            .Setup(s => s.ListDriveItemsAsync(siteId, path, It.IsAny<CancellationToken>()))
+            .Setup(s => s.ListDriveItemsAsync(siteId, path, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedItems);
 
         var query = new ListDriveItemsQuery(siteId, path);

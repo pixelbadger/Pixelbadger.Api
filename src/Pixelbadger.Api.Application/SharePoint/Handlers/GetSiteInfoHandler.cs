@@ -16,6 +16,6 @@ public class GetSiteInfoHandler : IRequestHandler<GetSiteInfoQuery, SharePointSi
 
     public async Task<SharePointSite> Handle(GetSiteInfoQuery request, CancellationToken cancellationToken)
     {
-        return await _sharePointService.GetSiteAsync(request.SiteId, cancellationToken);
+        return await _sharePointService.GetSiteAsync(request.SiteId, request.UserAccessToken, cancellationToken);
     }
 }

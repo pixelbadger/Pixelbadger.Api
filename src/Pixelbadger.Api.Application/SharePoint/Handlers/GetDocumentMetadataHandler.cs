@@ -16,6 +16,6 @@ public class GetDocumentMetadataHandler : IRequestHandler<GetDocumentMetadataQue
 
     public async Task<SharePointDocument> Handle(GetDocumentMetadataQuery request, CancellationToken cancellationToken)
     {
-        return await _sharePointService.GetDocumentMetadataAsync(request.SiteId, request.ItemId, cancellationToken);
+        return await _sharePointService.GetDocumentMetadataAsync(request.SiteId, request.ItemId, request.UserAccessToken, cancellationToken);
     }
 }

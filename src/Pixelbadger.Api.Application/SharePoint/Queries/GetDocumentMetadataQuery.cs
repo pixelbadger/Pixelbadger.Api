@@ -3,4 +3,4 @@ using Pixelbadger.Api.Domain.Entities.SharePoint;
 
 namespace Pixelbadger.Api.Application.SharePoint.Queries;
 
-public record GetDocumentMetadataQuery(string SiteId, string ItemId) : IRequest<SharePointDocument>;
+public record GetDocumentMetadataQuery(string SiteId, string ItemId, string? UserAccessToken = null) : IRequest<SharePointDocument>;

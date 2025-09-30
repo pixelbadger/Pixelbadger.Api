@@ -51,7 +51,7 @@ public class SearchDocumentsHandlerTests
         };
 
         _mockSharePointService
-            .Setup(s => s.SearchDocumentsAsync(siteId, searchQuery, It.IsAny<CancellationToken>()))
+            .Setup(s => s.SearchDocumentsAsync(siteId, searchQuery, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResults);
 
         var query = new SearchDocumentsQuery(siteId, searchQuery);
@@ -63,7 +63,7 @@ public class SearchDocumentsHandlerTests
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count(), Is.EqualTo(2));
         Assert.That(result.All(r => r.Name.Contains("Budget", StringComparison.OrdinalIgnoreCase)), Is.True);
-        _mockSharePointService.Verify(s => s.SearchDocumentsAsync(siteId, searchQuery, It.IsAny<CancellationToken>()), Times.Once);
+        _mockSharePointService.Verify(s => s.SearchDocumentsAsync(siteId, searchQuery, It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
@@ -75,7 +75,7 @@ public class SearchDocumentsHandlerTests
         var expectedResults = new List<SharePointDriveItem>();
 
         _mockSharePointService
-            .Setup(s => s.SearchDocumentsAsync(siteId, searchQuery, It.IsAny<CancellationToken>()))
+            .Setup(s => s.SearchDocumentsAsync(siteId, searchQuery, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResults);
 
         var query = new SearchDocumentsQuery(siteId, searchQuery);

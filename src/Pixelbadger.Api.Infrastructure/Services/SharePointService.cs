@@ -7,22 +7,48 @@ namespace Pixelbadger.Api.Infrastructure.Services;
 
 public class SharePointService : ISharePointService
 {
-    private readonly GraphServiceClient _graphClient;
+    private readonly string _tenantId;
+    private readonly string _clientId;
+    private readonly string _clientSecret;
 
     public SharePointService(string tenantId, string clientId, string clientSecret)
     {
-        var clientSecretCredential = new ClientSecretCredential(
-            tenantId,
-            clientId,
-            clientSecret
-        );
-
-        _graphClient = new GraphServiceClient(clientSecretCredential);
+        _tenantId = tenantId;
+        _clientId = clientId;
+        _clientSecret = clientSecret;
     }
 
-    public async Task<SharePointSite> GetSiteAsync(string siteId, CancellationToken cancellationToken = default)
+    private GraphServiceClient CreateGraphClient(string? userAccessToken = null)
     {
-        var site = await _graphClient.Sites[siteId]
+        if (!string.IsNullOrEmpty(userAccessToken))
+        {
+            // Use On-Behalf-Of flow to call Graph API as the user
+            var onBehalfOfCredential = new OnBehalfOfCredential(
+                _tenantId,
+                _clientId,
+                _clientSecret,
+                userAccessToken
+            );
+
+            return new GraphServiceClient(onBehalfOfCredential);
+        }
+        else
+        {
+            // Fallback to app-only authentication if no user token (e.g., for background jobs)
+            var clientSecretCredential = new ClientSecretCredential(
+                _tenantId,
+                _clientId,
+                _clientSecret
+            );
+
+            return new GraphServiceClient(clientSecretCredential);
+        }
+    }
+
+    public async Task<SharePointSite> GetSiteAsync(string siteId, string? userAccessToken = null, CancellationToken cancellationToken = default)
+    {
+        var graphClient = CreateGraphClient(userAccessToken);
+        var site = await graphClient.Sites[siteId]
             .GetAsync(cancellationToken: cancellationToken);
 
         if (site == null)
@@ -45,9 +71,11 @@ public class SharePointService : ISharePointService
     public async Task<IEnumerable<SharePointDriveItem>> ListDriveItemsAsync(
         string siteId,
         string itemPath = "",
+        string? userAccessToken = null,
         CancellationToken cancellationToken = default)
     {
-        var drives = await _graphClient.Sites[siteId].Drives
+        var graphClient = CreateGraphClient(userAccessToken);
+        var drives = await graphClient.Sites[siteId].Drives
             .GetAsync(cancellationToken: cancellationToken);
 
         if (drives?.Value == null || !drives.Value.Any())
@@ -61,12 +89,12 @@ public class SharePointService : ISharePointService
 
         if (string.IsNullOrEmpty(itemPath))
         {
-            items = await _graphClient.Drives[driveId].Items["root"].Children
+            items = await graphClient.Drives[driveId].Items["root"].Children
                 .GetAsync(cancellationToken: cancellationToken);
         }
         else
         {
-            items = await _graphClient.Drives[driveId].Items["root"]
+            items = await graphClient.Drives[driveId].Items["root"]
                 .ItemWithPath(itemPath).Children
                 .GetAsync(cancellationToken: cancellationToken);
         }
@@ -94,9 +122,11 @@ public class SharePointService : ISharePointService
     public async Task<SharePointDocument> GetDocumentMetadataAsync(
         string siteId,
         string itemId,
+        string? userAccessToken = null,
         CancellationToken cancellationToken = default)
     {
-        var drives = await _graphClient.Sites[siteId].Drives
+        var graphClient = CreateGraphClient(userAccessToken);
+        var drives = await graphClient.Sites[siteId].Drives
             .GetAsync(cancellationToken: cancellationToken);
 
         if (drives?.Value == null || !drives.Value.Any())
@@ -106,7 +136,7 @@ public class SharePointService : ISharePointService
 
         var driveId = drives.Value.First().Id;
 
-        var item = await _graphClient.Drives[driveId].Items[itemId]
+        var item = await graphClient.Drives[driveId].Items[itemId]
             .GetAsync(cancellationToken: cancellationToken);
 
         if (item == null)
@@ -143,9 +173,11 @@ public class SharePointService : ISharePointService
     public async Task<IEnumerable<SharePointDriveItem>> SearchDocumentsAsync(
         string siteId,
         string searchQuery,
+        string? userAccessToken = null,
         CancellationToken cancellationToken = default)
     {
-        var drives = await _graphClient.Sites[siteId].Drives
+        var graphClient = CreateGraphClient(userAccessToken);
+        var drives = await graphClient.Sites[siteId].Drives
             .GetAsync(cancellationToken: cancellationToken);
 
         if (drives?.Value == null || !drives.Value.Any())
@@ -155,7 +187,7 @@ public class SharePointService : ISharePointService
 
         var driveId = drives.Value.First().Id;
 
-        var searchResults = await _graphClient.Drives[driveId]
+        var searchResults = await graphClient.Drives[driveId]
             .SearchWithQ(searchQuery)
             .GetAsSearchWithQGetResponseAsync(cancellationToken: cancellationToken);
 
@@ -182,9 +214,11 @@ public class SharePointService : ISharePointService
     public async Task<byte[]> GetDocumentContentAsync(
         string siteId,
         string itemId,
+        string? userAccessToken = null,
         CancellationToken cancellationToken = default)
     {
-        var drives = await _graphClient.Sites[siteId].Drives
+        var graphClient = CreateGraphClient(userAccessToken);
+        var drives = await graphClient.Sites[siteId].Drives
             .GetAsync(cancellationToken: cancellationToken);
 
         if (drives?.Value == null || !drives.Value.Any())
@@ -194,7 +228,7 @@ public class SharePointService : ISharePointService
 
         var driveId = drives.Value.First().Id;
 
-        var stream = await _graphClient.Drives[driveId].Items[itemId].Content
+        var stream = await graphClient.Drives[driveId].Items[itemId].Content
             .GetAsync(cancellationToken: cancellationToken);
 
         if (stream == null)

@@ -37,7 +37,7 @@ public class GetSiteInfoHandlerTests
         };
 
         _mockSharePointService
-            .Setup(s => s.GetSiteAsync(siteId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetSiteAsync(siteId, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedSite);
 
         var query = new GetSiteInfoQuery(siteId);
@@ -50,7 +50,7 @@ public class GetSiteInfoHandlerTests
         Assert.That(result.Id, Is.EqualTo(expectedSite.Id));
         Assert.That(result.Name, Is.EqualTo(expectedSite.Name));
         Assert.That(result.WebUrl, Is.EqualTo(expectedSite.WebUrl));
-        _mockSharePointService.Verify(s => s.GetSiteAsync(siteId, It.IsAny<CancellationToken>()), Times.Once);
+        _mockSharePointService.Verify(s => s.GetSiteAsync(siteId, It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
@@ -59,7 +59,7 @@ public class GetSiteInfoHandlerTests
         // Arrange
         var siteId = "invalid-site-id";
         _mockSharePointService
-            .Setup(s => s.GetSiteAsync(siteId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetSiteAsync(siteId, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception($"Site with ID {siteId} not found"));
 
         var query = new GetSiteInfoQuery(siteId);
